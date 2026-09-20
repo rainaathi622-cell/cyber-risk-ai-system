@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 from database import engine, Base
 from routes import asset_routes, vulnerability_routes
-from models import asset, vulnerability
+from models import asset, vulnerability, risk_score
 
 # Create all tables in the database
 Base.metadata.create_all(bind=engine)
