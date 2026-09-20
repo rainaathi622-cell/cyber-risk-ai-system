@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from database import engine, Base
 from routes import asset_routes, vulnerability_routes, risk_routes, budget_routes
@@ -7,6 +8,13 @@ from routes import asset_routes, vulnerability_routes, risk_routes, budget_route
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Cyber Risk AI System")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(asset_routes.router)
 app.include_router(vulnerability_routes.router)
