@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+
 class RiskScoreResponse(BaseModel):
     id: int
     asset_id: int
@@ -22,3 +23,12 @@ class AssetRiskSummary(BaseModel):
     calculated_score: float
     risk_level: str
     vulnerability_count: int
+
+
+class OverallRiskStats(BaseModel):
+    overall_score: float
+    critical_count: int
+    high_count: int
+    medium_count: int
+    low_count: int
+    total_assets: int
