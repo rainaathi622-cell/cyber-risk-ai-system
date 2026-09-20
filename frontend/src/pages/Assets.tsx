@@ -71,7 +71,7 @@ function Assets() {
                   <td className="px-6 py-4 text-sm text-gray-500">{asset.criticality}</td>
                   <td className="px-6 py-4 text-sm text-gray-500">{asset.exposure}</td>
                   <td className="px-6 py-4 text-sm text-gray-500">{asset.vulnerability_count}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900 font-semibold">{asset.calculated_score}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900 font-semibold">{asset.calculated_score.toFixed(1)}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${riskColor(asset.risk_level)}`}>
                       {asset.risk_level}
