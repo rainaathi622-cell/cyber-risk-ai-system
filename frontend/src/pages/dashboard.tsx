@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { fetchRiskStats } from '../api/riskApi'
 import type { RiskStats } from '../api/riskApi'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+
 function Dashboard() {
   const [stats, setStats] = useState<RiskStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -42,6 +44,13 @@ function Dashboard() {
     return 'text-green-600'
   }
 
+  const chartData = [
+    { name: 'Critical', count: stats?.critical_count || 0 },
+    { name: 'High', count: stats?.high_count || 0 },
+    { name: 'Medium', count: stats?.medium_count || 0 },
+    { name: 'Low', count: stats?.low_count || 0 },
+  ]
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="text-3xl font-bold text-gray-800 mb-4">
@@ -80,6 +89,24 @@ function Dashboard() {
           <RiskBar label="Medium" count={stats?.medium_count || 0} total={stats?.total_assets || 1} color="bg-yellow-500" />
           <RiskBar label="Low" count={stats?.low_count || 0} total={stats?.total_assets || 1} color="bg-green-500" />
         </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow p-6 mt-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Risk Distribution Chart</h2>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Bar dataKey="count">
+              <Cell fill="#dc2626" />
+              <Cell fill="#f97316" />
+              <Cell fill="#eab308" />
+              <Cell fill="#16a34a" />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   )
