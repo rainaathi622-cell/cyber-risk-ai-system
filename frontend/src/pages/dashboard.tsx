@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { fetchRiskStats } from '../api/riskApi'
 import type { RiskStats } from '../api/riskApi'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { Link } from 'react-router-dom'
 
 function Dashboard() {
   const [stats, setStats] = useState<RiskStats | null>(null)
@@ -22,15 +23,18 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 p-8">
-        <p className="text-gray-600">Loading dashboard data...</p>
+      <div className="min-h-screen bg-gray-100 p-4 sm:p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-3"></div>
+          <p className="text-gray-600">Loading dashboard data...</p>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-100 p-8">
+      <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
         <p className="text-red-600">Error loading data: {error}</p>
         <p className="text-gray-500 text-sm mt-2">Make sure your backend server is running at http://127.0.0.1:8000</p>
       </div>
@@ -51,14 +55,38 @@ function Dashboard() {
     { name: 'Low', count: stats?.low_count || 0 },
   ]
 
+  const criticalCount = stats?.critical_count || 0
+
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
       <h1 className="text-3xl font-bold text-gray-800 mb-4">
         Security Risk Dashboard
       </h1>
       <p className="text-gray-600 mb-6">
         Overview of your organization's cybersecurity risk.
       </p>
+
+      {criticalCount > 0 && (
+        <div className="bg-red-50 border-l-4 border-red-500 rounded-md p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <p className="font-semibold text-red-800">
+                {criticalCount} Critical Risk {criticalCount === 1 ? 'Asset' : 'Assets'} Detected
+              </p>
+              <p className="text-sm text-red-700">
+                These assets need immediate attention. Review the Assets page for details.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/assets"
+            className="bg-red-600 text-white text-sm px-4 py-2 rounded-md hover:bg-red-700 transition whitespace-nowrap text-center"
+          >
+            View Critical Assets
+          </Link>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-6">
