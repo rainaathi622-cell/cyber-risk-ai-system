@@ -21,8 +21,25 @@ export interface AssetRiskSummary {
   vulnerability_count: number;
 }
 
+async function fetchWithRetry(url: string, retries = 1, delayMs = 800): Promise<Response> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok && retries > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      return fetchWithRetry(url, retries - 1, delayMs);
+    }
+    return response;
+  } catch (err) {
+    if (retries > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      return fetchWithRetry(url, retries - 1, delayMs);
+    }
+    throw err;
+  }
+}
+
 export async function fetchRiskStats(): Promise<RiskStats> {
-  const response = await fetch(`${API_BASE_URL}/risk-scores/stats`);
+  const response = await fetchWithRetry(`${API_BASE_URL}/risk-scores/stats`);
   if (!response.ok) {
     throw new Error("Failed to fetch risk stats");
   }
@@ -34,7 +51,7 @@ export async function fetchRiskSummaries(riskLevel?: string): Promise<AssetRiskS
     ? `${API_BASE_URL}/risk-scores/?risk_level=${riskLevel}`
     : `${API_BASE_URL}/risk-scores/`;
 
-  const response = await fetch(url);
+  const response = await fetchWithRetry(url);
   if (!response.ok) {
     throw new Error("Failed to fetch risk summaries");
   }

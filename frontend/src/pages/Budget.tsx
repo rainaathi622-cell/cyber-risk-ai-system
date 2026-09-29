@@ -40,7 +40,7 @@ function Budget() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
       <h1 className="text-3xl font-bold text-gray-800 mb-2">Budget Recommendation</h1>
       <p className="text-gray-600 mb-6">
         Enter your available security budget to see which fixes give you the most risk reduction for your money.
@@ -50,7 +50,7 @@ function Budget() {
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Total Available Budget (₹)
         </label>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <input
             type="number"
             value={budgetInput}
@@ -90,7 +90,7 @@ function Budget() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
+          <div className="bg-white rounded-lg shadow overflow-x-auto mb-6">
             <div className="px-6 py-4 border-b border-gray-200 bg-green-50">
               <h2 className="text-lg font-semibold text-gray-800">
                 ✅ Recommended Fixes ({result.selected_fixes.length})
@@ -130,7 +130,7 @@ function Budget() {
           </div>
 
           {result.skipped_fixes.length > 0 && (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white rounded-lg shadow overflow-x-auto">
               <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
                 <h2 className="text-lg font-semibold text-gray-800">
                   ⏳ Not Included ({result.skipped_fixes.length})

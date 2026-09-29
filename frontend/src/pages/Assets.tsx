@@ -29,8 +29,8 @@ function Assets() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Asset Inventory</h1>
 
         <select
@@ -50,7 +50,7 @@ function Assets() {
       {error && <p className="text-red-600">Error: {error}</p>}
 
       {!loading && !error && (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-lg shadow overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>

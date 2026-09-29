@@ -16,8 +16,8 @@ function Nav() {
   }
 
   return (
-    <nav className="bg-gray-800 text-white px-6 py-4 flex gap-6 items-center justify-between">
-      <div className="flex gap-6">
+    <nav className="bg-gray-800 text-white px-4 sm:px-6 py-4 flex flex-wrap gap-4 sm:gap-6 items-center justify-between">
+      <div className="flex flex-wrap gap-4 sm:gap-6 text-sm sm:text-base">
         <Link to="/" className={linkClass('/')}>Dashboard</Link>
         <Link to="/assets" className={linkClass('/assets')}>Assets</Link>
         <Link to="/budget" className={linkClass('/budget')}>Budget</Link>

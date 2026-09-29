@@ -25,8 +25,25 @@ export interface BudgetOptimizationResponse {
   total_budget: number;
 }
 
+async function fetchWithRetry(url: string, retries = 1, delayMs = 800): Promise<Response> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok && retries > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      return fetchWithRetry(url, retries - 1, delayMs);
+    }
+    return response;
+  } catch (err) {
+    if (retries > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      return fetchWithRetry(url, retries - 1, delayMs);
+    }
+    throw err;
+  }
+}
+
 export async function fetchBudgetOptimization(totalBudget: number): Promise<BudgetOptimizationResponse> {
-  const response = await fetch(`${API_BASE_URL}/budget/optimize?total_budget=${totalBudget}`);
+  const response = await fetchWithRetry(`${API_BASE_URL}/budget/optimize?total_budget=${totalBudget}`);
   if (!response.ok) {
     throw new Error("Failed to fetch budget optimization");
   }
