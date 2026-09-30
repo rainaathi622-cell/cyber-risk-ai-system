@@ -4,11 +4,14 @@ from sqlalchemy import text
 from database import engine, Base
 from routes import asset_routes, vulnerability_routes, risk_routes, budget_routes, auth_routes
 from models import asset, vulnerability, risk_score, user
+from scheduler.tasks import start_scheduler
 
 # Create all tables in the database
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Cyber Risk AI System")
+
+scheduler = start_scheduler()
 
 app.add_middleware(
     CORSMiddleware,
