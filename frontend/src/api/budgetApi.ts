@@ -25,10 +25,11 @@ export interface BudgetOptimizationResponse {
   total_budget: number;
 }
 
+// Retry once, but only for server/network problems (not for bad input)
 async function fetchWithRetry(url: string, retries = 1, delayMs = 800): Promise<Response> {
   try {
     const response = await fetch(url);
-    if (!response.ok && retries > 0) {
+    if (response.status >= 500 && retries > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayMs));
       return fetchWithRetry(url, retries - 1, delayMs);
     }
@@ -44,8 +45,12 @@ async function fetchWithRetry(url: string, retries = 1, delayMs = 800): Promise<
 
 export async function fetchBudgetOptimization(totalBudget: number): Promise<BudgetOptimizationResponse> {
   const response = await fetchWithRetry(`${API_BASE_URL}/budget/optimize?total_budget=${totalBudget}`);
+
+  if (response.status === 422) {
+    throw new Error("Budget must be more than ₹0 and at most ₹10,00,00,000");
+  }
   if (!response.ok) {
-    throw new Error("Failed to fetch budget optimization");
+    throw new Error("Could not get recommendations right now. Please try again.");
   }
   return response.json();
 }
