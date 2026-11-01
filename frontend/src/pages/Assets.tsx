@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { fetchRiskSummaries } from '../api/riskApi'
 import type { AssetRiskSummary } from '../api/riskApi'
+import ErrorBox from '../components/ErrorBox'
 
 function Assets() {
   const [assets, setAssets] = useState<AssetRiskSummary[]>([])
@@ -8,18 +9,18 @@ function Assets() {
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<string>('')
 
-  useEffect(() => {
+  const loadAssets = useCallback(() => {
     setLoading(true)
+    setError(null)
     fetchRiskSummaries(filter || undefined)
-      .then((data) => {
-        setAssets(data)
-        setLoading(false)
-      })
-      .catch((err) => {
-        setError(err.message)
-        setLoading(false)
-      })
+      .then((data) => setAssets(data))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false))
   }, [filter])
+
+  useEffect(() => {
+    loadAssets()
+  }, [loadAssets])
 
   const riskColor = (risk: string) => {
     if (risk === 'Critical') return 'bg-red-100 text-red-700'
@@ -46,8 +47,14 @@ function Assets() {
         </select>
       </div>
 
-      {loading && <p className="text-gray-600">Loading assets...</p>}
-      {error && <p className="text-red-600">Error: {error}</p>}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
+          <p className="text-gray-600">Loading assets...</p>
+        </div>
+      )}
+
+      {error && <ErrorBox message={error} onRetry={loadAssets} />}
 
       {!loading && !error && (
         <div className="bg-white rounded-lg shadow overflow-x-auto">
@@ -83,7 +90,11 @@ function Assets() {
           </table>
 
           {assets.length === 0 && (
-            <p className="text-center text-gray-500 py-8">No assets found for this filter.</p>
+            <p className="text-center text-gray-500 py-8">
+              {filter
+                ? `No assets with risk level "${filter}".`
+                : 'No assets have been added yet.'}
+            </p>
           )}
         </div>
       )}

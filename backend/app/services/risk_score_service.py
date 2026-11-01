@@ -59,29 +59,33 @@ def get_asset_risk_summaries(db: Session, risk_level_filter: str = None) -> list
     """
     Get a combined view: asset details + their risk score + vulnerability count.
     Optionally filter by risk_level (Critical/High/Medium/Low).
+    An asset that has no score yet (for example, just created) is scored on the spot.
     """
     all_assets = db.query(Asset).all()
     summaries = []
 
     for asset in all_assets:
         risk_score = db.query(RiskScore).filter(RiskScore.asset_id == asset.id).first()
+
+        if risk_score is None:
+            risk_score = calculate_and_save_risk_for_asset(db, asset)
+
+        if risk_level_filter and risk_score.risk_level != risk_level_filter:
+            continue
+
         vuln_count = db.query(Vulnerability).filter(Vulnerability.asset_id == asset.id).count()
 
-        if risk_score:
-            if risk_level_filter and risk_score.risk_level != risk_level_filter:
-                continue
-
-            summaries.append({
-                "asset_id": asset.id,
-                "asset_name": asset.asset_name,
-                "asset_type": asset.asset_type,
-                "criticality": asset.criticality,
-                "exposure": asset.exposure,
-                "patch_status": asset.patch_status,
-                "calculated_score": risk_score.calculated_score,
-                "risk_level": risk_score.risk_level,
-                "vulnerability_count": vuln_count
-            })
+        summaries.append({
+            "asset_id": asset.id,
+            "asset_name": asset.asset_name,
+            "asset_type": asset.asset_type,
+            "criticality": asset.criticality,
+            "exposure": asset.exposure,
+            "patch_status": asset.patch_status,
+            "calculated_score": risk_score.calculated_score,
+            "risk_level": risk_score.risk_level,
+            "vulnerability_count": vuln_count
+        })
 
     summaries.sort(key=lambda x: x["calculated_score"], reverse=True)
     return summaries

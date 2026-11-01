@@ -1,25 +1,27 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { fetchRiskStats } from '../api/riskApi'
 import type { RiskStats } from '../api/riskApi'
+import ErrorBox from '../components/ErrorBox'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { Link } from 'react-router-dom'
 
 function Dashboard() {
   const [stats, setStats] = useState<RiskStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
+  const loadStats = useCallback(() => {
+    setLoading(true)
+    setError(null)
     fetchRiskStats()
-      .then((data) => {
-        setStats(data)
-        setLoading(false)
-      })
-      .catch((err) => {
-        setError(err.message)
-        setLoading(false)
-      })
+      .then((data) => setStats(data))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    loadStats()
+  }, [loadStats])
 
   if (loading) {
     return (
@@ -35,8 +37,30 @@ function Dashboard() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
-        <p className="text-red-600">Error loading data: {error}</p>
-        <p className="text-gray-500 text-sm mt-2">Make sure your backend server is running at http://127.0.0.1:8000</p>
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">Security Risk Dashboard</h1>
+        <ErrorBox message={error} onRetry={loadStats} />
+      </div>
+    )
+  }
+
+  if (!stats || stats.total_assets === 0) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">Security Risk Dashboard</h1>
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <h2 className="text-lg font-semibold text-gray-800 mb-1">
+            No assets are being monitored yet
+          </h2>
+          <p className="text-gray-600 mb-4">
+            Add assets and their vulnerabilities. Risk scores will appear here automatically.
+          </p>
+          <Link
+            to="/assets"
+            className="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700 transition"
+          >
+            Go to Assets
+          </Link>
+        </div>
       </div>
     )
   }
@@ -49,13 +73,13 @@ function Dashboard() {
   }
 
   const chartData = [
-    { name: 'Critical', count: stats?.critical_count || 0 },
-    { name: 'High', count: stats?.high_count || 0 },
-    { name: 'Medium', count: stats?.medium_count || 0 },
-    { name: 'Low', count: stats?.low_count || 0 },
+    { name: 'Critical', count: stats.critical_count },
+    { name: 'High', count: stats.high_count },
+    { name: 'Medium', count: stats.medium_count },
+    { name: 'Low', count: stats.low_count },
   ]
 
-  const criticalCount = stats?.critical_count || 0
+  const criticalCount = stats.critical_count
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
@@ -91,20 +115,20 @@ function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-sm font-medium text-gray-500">Overall Risk Score</h2>
-          <p className={`text-3xl font-bold mt-2 ${getScoreColor(stats?.overall_score || 0)}`}>
-            {stats?.overall_score}
+          <p className={`text-3xl font-bold mt-2 ${getScoreColor(stats.overall_score)}`}>
+            {stats.overall_score}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-sm font-medium text-gray-500">Critical Assets</h2>
           <p className="text-3xl font-bold text-red-600 mt-2">
-            {stats?.critical_count}
+            {stats.critical_count}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-sm font-medium text-gray-500">Total Assets Monitored</h2>
           <p className="text-3xl font-bold text-blue-600 mt-2">
-            {stats?.total_assets}
+            {stats.total_assets}
           </p>
         </div>
       </div>
@@ -112,10 +136,10 @@ function Dashboard() {
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Risk Level Distribution</h2>
         <div className="space-y-3">
-          <RiskBar label="Critical" count={stats?.critical_count || 0} total={stats?.total_assets || 1} color="bg-red-500" />
-          <RiskBar label="High" count={stats?.high_count || 0} total={stats?.total_assets || 1} color="bg-orange-500" />
-          <RiskBar label="Medium" count={stats?.medium_count || 0} total={stats?.total_assets || 1} color="bg-yellow-500" />
-          <RiskBar label="Low" count={stats?.low_count || 0} total={stats?.total_assets || 1} color="bg-green-500" />
+          <RiskBar label="Critical" count={stats.critical_count} total={stats.total_assets} color="bg-red-500" />
+          <RiskBar label="High" count={stats.high_count} total={stats.total_assets} color="bg-orange-500" />
+          <RiskBar label="Medium" count={stats.medium_count} total={stats.total_assets} color="bg-yellow-500" />
+          <RiskBar label="Low" count={stats.low_count} total={stats.total_assets} color="bg-green-500" />
         </div>
       </div>
 

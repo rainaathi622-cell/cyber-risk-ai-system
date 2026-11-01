@@ -1,9 +1,10 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { isTokenValid, clearToken } from '../utils/auth'
 
 function Nav() {
   const location = useLocation()
   const navigate = useNavigate()
-  const isLoggedIn = !!localStorage.getItem('access_token')
+  const isLoggedIn = isTokenValid()
 
   const linkClass = (path: string) =>
     location.pathname === path
@@ -11,7 +12,7 @@ function Nav() {
       : 'hover:text-blue-300'
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token')
+    clearToken()
     navigate('/login')
   }
 
