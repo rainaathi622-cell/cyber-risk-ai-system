@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from models.asset import Asset
 from models.vulnerability import Vulnerability
@@ -57,23 +58,28 @@ def calculate_risk_for_all_assets(db: Session) -> list:
 
 def get_asset_risk_summaries(db: Session, risk_level_filter: str = None) -> list:
     """
-    Get a combined view: asset details + their risk score + vulnerability count.
-    Optionally filter by risk_level (Critical/High/Medium/Low).
-    An asset that has no score yet (for example, just created) is scored on the spot.
+    Get a combined view: asset details + risk score + vulnerability count.
+    Uses only 3 database queries, no matter how many assets exist.
+    An asset with no score yet (for example, just created) is scored on the spot.
     """
-    all_assets = db.query(Asset).all()
+    assets = db.query(Asset).all()
+    scores = {s.asset_id: s for s in db.query(RiskScore).all()}
+    vuln_counts = dict(
+        db.query(Vulnerability.asset_id, func.count(Vulnerability.id))
+        .group_by(Vulnerability.asset_id)
+        .all()
+    )
+
     summaries = []
 
-    for asset in all_assets:
-        risk_score = db.query(RiskScore).filter(RiskScore.asset_id == asset.id).first()
+    for asset in assets:
+        risk_score = scores.get(asset.id)
 
         if risk_score is None:
             risk_score = calculate_and_save_risk_for_asset(db, asset)
 
         if risk_level_filter and risk_score.risk_level != risk_level_filter:
             continue
-
-        vuln_count = db.query(Vulnerability).filter(Vulnerability.asset_id == asset.id).count()
 
         summaries.append({
             "asset_id": asset.id,
@@ -84,7 +90,7 @@ def get_asset_risk_summaries(db: Session, risk_level_filter: str = None) -> list
             "patch_status": asset.patch_status,
             "calculated_score": risk_score.calculated_score,
             "risk_level": risk_score.risk_level,
-            "vulnerability_count": vuln_count
+            "vulnerability_count": vuln_counts.get(asset.id, 0)
         })
 
     summaries.sort(key=lambda x: x["calculated_score"], reverse=True)

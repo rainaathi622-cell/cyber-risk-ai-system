@@ -8,18 +8,18 @@ from services.budget_formula import build_fix_recommendations, optimize_budget_a
 def get_all_vulnerabilities_with_context(db: Session) -> list:
     """
     Pull every vulnerability from the database, joined with its asset's details
-    and current risk score, formatted for the budget formula.
+    and current risk score. Uses only 3 database queries.
     """
     vulnerabilities = db.query(Vulnerability).all()
+    assets = {a.id: a for a in db.query(Asset).all()}
+    scores = {s.asset_id: s.calculated_score for s in db.query(RiskScore).all()}
+
     enriched_list = []
 
     for vuln in vulnerabilities:
-        asset = db.query(Asset).filter(Asset.id == vuln.asset_id).first()
+        asset = assets.get(vuln.asset_id)
         if not asset:
             continue
-
-        risk_score_record = db.query(RiskScore).filter(RiskScore.asset_id == asset.id).first()
-        current_risk_score = risk_score_record.calculated_score if risk_score_record else 0
 
         enriched_list.append({
             "vuln_id": vuln.id,
@@ -31,7 +31,7 @@ def get_all_vulnerabilities_with_context(db: Session) -> list:
             "exposure": asset.exposure,
             "patch_status": asset.patch_status,
             "cvss_score": vuln.cvss_score,
-            "current_risk_score": current_risk_score
+            "current_risk_score": scores.get(asset.id, 0)
         })
 
     return enriched_list
