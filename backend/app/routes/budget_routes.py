@@ -6,10 +6,16 @@ from schemas.budget_schema import BudgetOptimizationResponse
 
 router = APIRouter(prefix="/budget", tags=["Budget Optimization"])
 
+
 @router.get("/optimize", response_model=BudgetOptimizationResponse)
 def optimize_budget(
-    total_budget: float = Query(..., description="Total available budget in rupees", gt=0),
-    db: Session = Depends(get_db)
+    total_budget: float = Query(
+        ...,
+        description="Total available budget in rupees (more than 0, at most 10 crore)",
+        gt=0,
+        le=100000000,
+    ),
+    db: Session = Depends(get_db),
 ):
     """
     Given a total budget, recommend which vulnerabilities to fix first

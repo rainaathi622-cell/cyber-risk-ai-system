@@ -22,4 +22,4 @@ function App() {
   )
 }
 
-export default Appcd 
+export default App
