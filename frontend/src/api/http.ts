@@ -1,5 +1,8 @@
-// Day 34 (deployment) will change only this one line
-export const API_BASE_URL = 'http://127.0.0.1:8000'
+// The backend address comes from the VITE_API_URL setting.
+// If it is not set, the website uses your local backend.
+export const API_BASE_URL: string = (
+  import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+).replace(/\/$/, '')
 
 const TOKEN_KEY = 'access_token'
 
